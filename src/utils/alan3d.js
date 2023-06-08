@@ -35,6 +35,7 @@ class Alan3d {
     this.animate();
     // 监听场景大小改变，重新渲染尺寸
     window.addEventListener("resize", this.onWindowResize.bind(this));
+    this.container.addEventListener("click", this.onMouseClick.bind(this));
   }
   animate = () => {
     this.stats.update();
@@ -97,6 +98,19 @@ class Alan3d {
       this.container.clientHeight
     );
     this.renderer.setPixelRatio(window.devicePixelRatio);
+  }
+  onMouseClick(e) {
+    const mouse = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+    mouse.x = (e.clientX / this.container.clientWidth) * 2 - 1;
+    mouse.y = -(e.clientY / this.container.clientHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, this.camera);
+    const intersects = raycaster.intersectObjects(this.scene.children, true);
+    if (intersects.length > 0) {
+      intersects[0].object.material.color.set(
+        new THREE.Color().setHex(Math.random() * 0xffffff)
+      );
+    }
   }
   addObject(object) {
     this.scene.add(object);

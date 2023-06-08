@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div class="three-dom" ref="threeDomRef"></div>
+    <div class="three-dom" ref="threeDomRef" @mousemove="onMousemove"></div>
     <div class="action-area">
       <form class="box-form">
         <label>货物编码</label>
@@ -76,11 +76,11 @@ const onBatchAddMesh = () => {
   for (let i = 0; i < 7; i++) {
     for (let j = 0; j < 7; j++) {
       for (let k = 0; k < 7; k++) {
-        let box = makeMeshBox([2, 2, 1], "#f8d059", [
-          -29 + i * 3,
-          1 + j * 3,
-          10.5 + k * 3,
-        ]);
+        let box = makeMeshBox(
+          [2, 2, 1],
+          "#f8d059",
+          [-29 + i * 3, 1 + j * 3, 10.5 + k * 3]
+        );
         alan3d.addObject(box);
       }
     }
