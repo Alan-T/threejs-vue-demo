@@ -1,6 +1,35 @@
 <template>
   <div class="container">
     <div class="three-dom" ref="threeDomRef" @mousemove="onMousemove"></div>
+    <div id="label" style="display: none">
+      <div
+        style="
+          position: relative;
+          width: 120px;
+          height: 160px;
+          color: #ffffff;
+         
+        "
+      >
+        <div style="font-size: 12px; background-color: rgba(224, 124, 124, 0.4);">
+          <div style="font-size: 14px; font-weight: 400">
+            <span id="txtName">货箱详情</span>
+          </div>
+          <div style="margin-top: 8px; ">
+            <span style="color: #fff; font-weight: 300">编号：</span>
+            <span style="font-weight: 400; margin-left: 10px" id="txtMaterial"
+              >9568</span
+            >
+          </div>
+          <div style="margin-top: 8px;">
+            <span style="color: #fff; font-weight: 300">颜色：</span>
+            <span style="font-weight: 400; margin-left: 2px" id="txtColor"
+              >红色</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="action-area">
       <form class="box-form">
         <label>货物编码</label>
@@ -76,11 +105,11 @@ const onBatchAddMesh = () => {
   for (let i = 0; i < 7; i++) {
     for (let j = 0; j < 7; j++) {
       for (let k = 0; k < 7; k++) {
-        let box = makeMeshBox(
-          [2, 2, 1],
-          "#f8d059",
-          [-29 + i * 3, 1 + j * 3, 10.5 + k * 3]
-        );
+        let box = makeMeshBox([2, 2, 1], "#f8d059", [
+          -29 + i * 3,
+          1 + j * 3,
+          10.5 + k * 3,
+        ]);
         alan3d.addObject(box);
       }
     }
@@ -89,19 +118,34 @@ const onBatchAddMesh = () => {
 </script>
 <style scoped lang="scss">
 .container {
-  height: 100vh;
-  background-color: #f3f4e7;
+  height: 100%;
+  padding-top: 20px;
   .three-dom {
-    height: calc(100% - 280px);
-    width: 100%;
+    height: 600px;
+    box-shadow: 0 2px 10px 0 rgba(14, 33, 39, 0.2);
+    width: 1200px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0 auto;
+    box-sizing: border-box;
+    position: relative;
   }
   .action-area {
+    margin: 40px auto;
+    background-color: #f3f4e7;
+    box-shadow: 0 2px 10px 0 rgba(14, 33, 39, 0.2);
+    border-radius: 4px;
     padding: 20px;
+    width: 1200px;
     display: flex;
     .box-form {
       color: #333;
       display: flex;
       flex-direction: column;
+      padding: 10px;
+      border: 1px solid #fff;
+      border-radius: 4px;
+      margin-right: 20px;
     }
   }
 }
