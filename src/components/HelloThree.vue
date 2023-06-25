@@ -3,25 +3,23 @@
     <div class="three-dom" ref="threeDomRef" @mousemove="onMousemove"></div>
     <div id="label" style="display: none">
       <div
-        style="
-          position: relative;
-          width: 120px;
-          height: 160px;
-          color: #ffffff;
-         
-        "
+        style="position: relative; width: 120px; height: 160px; color: #ffffff"
       >
-        <div style="font-size: 12px; background-color: rgba(224, 124, 124, 0.4);">
+        <div
+          style="font-size: 12px; background-color: rgba(224, 124, 124, 0.4)"
+        >
           <div style="font-size: 14px; font-weight: 400">
             <span id="txtName">货箱详情</span>
           </div>
-          <div style="margin-top: 8px; ">
+          <div style="margin-top: 8px">
             <span style="color: #fff; font-weight: 300">编号：</span>
-            <span style="font-weight: 400; margin-left: 10px" id="txtMaterial"
-              >9568</span
+            <span
+              style="font-weight: 400; margin-left: 10px"
+              id="txtMaterial"
+              >{{ formItems.name }}</span
             >
           </div>
-          <div style="margin-top: 8px;">
+          <div style="margin-top: 8px">
             <span style="color: #fff; font-weight: 300">颜色：</span>
             <span style="font-weight: 400; margin-left: 2px" id="txtColor"
               >红色</span
@@ -43,6 +41,11 @@
         <button type="reset">重置</button>
       </form>
       <div class="btn-list">
+        <select @change="onMeshChange" style="width: 120px">
+          <option v-for="option in options" :key="option.id" :value="option.id">
+            {{ option.label }}
+          </option>
+        </select>
         <button @click="onAddMesh">添加货物</button>
         <button @click="onRemoveMesh">删除货物</button>
         <button @click="() => onMoveMesh(meshBox)">开始运动</button>
@@ -59,8 +62,10 @@ import { onMounted, ref, reactive } from "vue";
 const threeDomRef = ref(null);
 let alan3d = null;
 let meshBox = null;
+const options = ref([]);
 const formItems = reactive({
-  name: "",
+  name: "标准箱",
+  id: 0,
   size: "2,2,1",
   color: "#f8d059",
   position: "-29,1,10.5",
@@ -74,42 +79,78 @@ onMounted(() => {
 
 const onAddMesh = () => {
   console.log(formItems);
-  meshBox = makeMeshBox(
-    formItems.size.split(","),
-    formItems.color,
-    formItems.position.split(",")
-  );
-  alan3d.addObject(meshBox);
+  formItems.id++;
+  formItems.name = "标准箱" + formItems.id;
+  const option = {
+    id: formItems.id,
+    label: formItems.name,
+    meshBox: makeMeshBox(
+      formItems.size.split(","),
+      formItems.color,
+      formItems.position.split(",")
+    ),
+  };
+  options.value.push(option);
+  meshBox = option.meshBox;
+  alan3d.addObject(option.meshBox);
 };
 const onRemoveMesh = () => {
+  options.value.splice(
+    options.value.findIndex((item) => (item.mesh = meshBox)),
+    1
+  );
   alan3d.removeObject(meshBox);
+};
+
+const onMeshChange = (event) => {
+  meshBox = options.value.find((item) => (item.id = event.target.value));
 };
 const onMoveMesh = (mesh) => {
   if (!mesh) {
     return;
   }
-  const tween = new TWEEN.Tween(mesh.position)
-    .to({ x: 3.85, y: 1, z: 10.5 }, 2000)
-    .easing(TWEEN.Easing.Sinusoidal.InOut);
-  const tween2 = new TWEEN.Tween(mesh.position)
-    .to({ x: 3.85, y: 3.75, z: 10.5 }, 2000)
-    .easing(TWEEN.Easing.Sinusoidal.InOut);
-  const tween3 = new TWEEN.Tween(mesh.position)
-    .to({ x: 3.85, y: 3.75, z: 6.2 }, 2000)
-    .easing(TWEEN.Easing.Sinusoidal.InOut);
-  tween.chain(tween2.chain(tween3)).start();
-  // 设置相机看向物体的方向(默认指向三维坐标系的原点)
+  const list = [
+    { position: { x: 3.85, y: 1, z: 10.5 }, interval: 2000 },
+    { position: { x: 3.85, y: 3.75, z: 10.5 }, interval: 2000 },
+    { position: { x: 3.85, y: 3.75, z: 6.2 }, interval: 2000 },
+  ];
+  const chainList = getTweenList(mesh.position, list);
+  chainList.start();
+};
+
+// 返回一个补间递归方法
+const getTweenList = (start, positionList) => {
+  let newlist = JSON.parse(JSON.stringify(positionList));
+  let chainList = null;
+  const createTween = (newArr) => {
+    if (newArr.length > 0) {
+      const { position, interval } = newArr.pop();
+      const tween = new TWEEN.Tween(start)
+        .to({ x: position.x, y: position.y, z: position.z }, interval)
+        .easing(TWEEN.Easing.Sinusoidal.InOut);
+      if (chainList) {
+        chainList = tween.chain(chainList);
+      } else {
+        chainList = tween;
+      }
+      return createTween(newArr);
+    } else {
+      return chainList;
+    }
+  };
+  return createTween(newlist);
 };
 
 const onBatchAddMesh = () => {
   for (let i = 0; i < 7; i++) {
     for (let j = 0; j < 7; j++) {
       for (let k = 0; k < 7; k++) {
-        let box = makeMeshBox([2, 2, 1], "#f8d059", [
-          -29 + i * 3,
-          1 + j * 3,
-          10.5 + k * 3,
-        ]);
+        let box = makeMeshBox(
+          [2, 2, 1],
+          "#f8d059",
+          [-29 + i * 3, 1 + j * 3, 10.5 + k * 3],
+          `货物${i}、${j}、${k}`
+        );
         alan3d.addObject(box);
       }
     }

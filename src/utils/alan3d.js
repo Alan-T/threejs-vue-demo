@@ -11,7 +11,6 @@ import {
 } from "three/examples/jsm/renderers/CSS2DRenderer"; // 引入CSS2渲染器CSS2DRenderer和CSS2模型对象CSS2DObject
 
 class Alan3d {
-  
   constructor(dom) {
     this.container = dom; //获取容器
     this.scene;
@@ -25,10 +24,16 @@ class Alan3d {
     this.group = new THREE.Group();
     this.windowInfo;
     this.infoDiv;
+    this.boxHelper = new THREE.BoxHelper(
+      new THREE.Object3D(),
+      new THREE.Color(0x00ffff)
+    );
   }
   init() {
     // 初始化场景
     this.initScene();
+    // 初始化包围盒的辅助对象
+    this.initBoxHelper();
     // 初始化地板
     this.initFloor();
     // 初始化CSS2D渲染器
@@ -63,6 +68,9 @@ class Alan3d {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xb9d3ff);
   }
+  initBoxHelper() {
+    this.scene.add(this.boxHelper);
+  }
   initFloor() {
     const floorGeometry = new THREE.PlaneGeometry(200, 200);
     const material = new THREE.MeshPhysicalMaterial({
@@ -86,7 +94,7 @@ class Alan3d {
     this.css2dRenderer.domElement.style.pointerEvents = "none";
     this.container.appendChild(this.css2dRenderer.domElement);
     this.infoDiv = document.querySelector("#label");
-    this.windowInfo=new CSS2DObject(this.infoDiv);
+    this.windowInfo = new CSS2DObject(this.infoDiv);
   }
   initAxesHelper() {
     const axesHelper = new THREE.AxesHelper(6);
@@ -148,23 +156,18 @@ class Alan3d {
     raycaster.setFromCamera(mouse, this.camera);
     const intersects = raycaster.intersectObjects(this.group.children, true);
     console.log(this.group);
-    
+
     if (intersects.length > 0) {
-      if (this.selectObj) {
-        this.selectObj.material.color.set("#f8d059");
-      }
-      intersects[0].object.material.color.set(
-        new THREE.Color().setHex(Math.random() * 0xffffff)
-      );
       this.selectObj = intersects[0].object;
+      this.boxHelper.setFromObject(this.selectObj);
+      this.boxHelper.visible = true;
       const pos = this.selectObj.position;
       this.infoDiv.style.display = "block";
-      
       this.windowInfo.position.set(pos.x, pos.y, pos.z);
       this.scene.add(this.windowInfo);
     } else {
       if (this.selectObj) {
-        this.selectObj.material.color.set("#f8d059");
+        this.boxHelper.visible = false;
         this.infoDiv.style.display = "none";
         this.scene.remove(this.windowInfo);
       }
