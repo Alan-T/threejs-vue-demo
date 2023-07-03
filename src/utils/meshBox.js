@@ -1,6 +1,6 @@
 import * as THREE from "three"; //导入three.js核心库
 export const makeMeshBox = (
-  size = [2, 2, 1],
+  size = [1, 1, 1],
   color = "#f8d059",
   position = [1, 1, 0.5],
   name = "标签名称测试"
@@ -33,7 +33,7 @@ function getTextCanvas(text) {
   ctx.fillStyle = "#f8d059";
   ctx.fillRect(0, 0, width, height);
   ctx.font = 80 + 'px " bold';
-  ctx.fillStyle = "#333333";
+  ctx.fillStyle = "#111111";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(`${text}`, 300, 300);

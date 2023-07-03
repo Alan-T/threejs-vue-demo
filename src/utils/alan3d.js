@@ -67,21 +67,34 @@ class Alan3d {
   initScene() {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xb9d3ff);
+    this.scene.position.set(0, 0, 0)
   }
   initBoxHelper() {
     this.scene.add(this.boxHelper);
   }
   initFloor() {
-    const floorGeometry = new THREE.PlaneGeometry(200, 200);
-    const material = new THREE.MeshPhysicalMaterial({
-      color: 0x808080,
-      side: THREE.DoubleSide,
-      metalness: 0,
-      roughness: 0.1,
-    });
-    const floorMesh = new THREE.Mesh(floorGeometry, material);
-    floorMesh.rotation.x = Math.PI / 2;
-    this.scene.add(floorMesh);
+    const planeWidth = 500;
+    const planeHeight = 500;
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(planeWidth, planeHeight),
+      new THREE.MeshPhongMaterial({ color: 0x619ac3, depthWrite: false })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    this.scene.add(ground);
+
+    const size = 500;
+    const divisions = 200;
+    const colorCenterLine = 0x888888;
+    const colorGrid = 0x888888;
+
+    const grid = new THREE.GridHelper(
+      size,
+      divisions,
+      colorCenterLine,
+      colorGrid
+    );
+    this.scene.add(grid);
   }
   initCSS2DRenderer() {
     this.css2dRenderer = new CSS2DRenderer();
@@ -105,25 +118,47 @@ class Alan3d {
     this.container.appendChild(this.stats.domElement);
   }
   initLight() {
-    const hesLight = new THREE.HemisphereLight(0xffffff, 0x444444);
-    hesLight.intensity = 0.6;
-    this.scene.add(hesLight);
+    // const hesLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+    // hesLight.intensity = 0.6;
+    // this.scene.add(hesLight);
 
-    const dirLight = new THREE.DirectionalLight();
-    dirLight.position.set(5, 5, 5);
-    this.scene.add(dirLight);
+    // const dirLight = new THREE.DirectionalLight();
+    // dirLight.position.set(5, 5, 5);
+    // this.scene.add(dirLight);
+    //环境光
+    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+    this.scene.add(ambient);
   }
   initCamera() {
     this.camera = new THREE.PerspectiveCamera(
-      25,
+      75,
       this.container.clientWidth / this.container.clientHeight,
       0.1,
       1000
     );
-    this.camera.position.set(40, 20, 70);
+    this.camera.position.set(16, 3, 25);
+
+    // this.camera = new THREE.PerspectiveCamera(
+    //   25,
+    //   this.container.clientWidth / this.container.clientHeight,
+    //   1,
+    //   2000
+    // );
+    // //设置相机位置
+    // this.camera.position.set(40, 20, 30);
+    // //设置相机方向
+    // this.camera.lookAt(0, 0, 0);
+
+    // const width = this.container.clientWidth; //canvas画布宽度
+    // const height = this.container.clientHeight; //canvas画布高度
+    // const k = width / height; //canvas画布宽高比
+    // const s = 20; //控制left, right, top, bottom范围大小
+    // this.camera = new THREE.OrthographicCamera(-s * k, s * k, s, -s, 0, 100);
+    // this.camera.position.set(0, 5, 25);
   }
   initRender() {
     this.renderer = new THREE.WebGLRenderer({ antialias: true }); //设置抗锯齿
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     //设置屏幕像素比
     this.renderer.setPixelRatio(window.devicePixelRatio);
     //渲染的尺寸大小
@@ -207,6 +242,30 @@ class Alan3d {
         }
       );
     });
+  }
+  loadGltfModel(url) {
+    const that = this;
+    const loader = new GLTFLoader();
+    loader.load(
+      url,
+      function (gltf) {
+        console.log(gltf);
+        gltf.scene.position.set(20, 0, 10);
+        // gltf.scene.scale.set(0.001, 0.001, 0.001);
+        gltf.scene.traverse((child) => {
+          if (child.isMesh) {
+            child.material.emissiveMap = child.material.map;
+          }
+        });
+        that.scene.add(gltf.scene);
+      },
+      function (xhr) {
+        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      },
+      function (error) {
+        console.error(error);
+      }
+    );
   }
 }
 export default Alan3d;
