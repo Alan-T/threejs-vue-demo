@@ -134,9 +134,9 @@ class Alan3d {
       75,
       this.container.clientWidth / this.container.clientHeight,
       0.1,
-      1000
+      100
     );
-    this.camera.position.set(16, 3, 25);
+    this.camera.position.set(12, 6, 22);
 
     // this.camera = new THREE.PerspectiveCamera(
     //   25,
@@ -243,14 +243,14 @@ class Alan3d {
       );
     });
   }
-  loadGltfModel(url) {
+  loadGltfModel(url,position=[0, 0, 0]) {
     const that = this;
     const loader = new GLTFLoader();
     loader.load(
       url,
       function (gltf) {
         console.log(gltf);
-        gltf.scene.position.set(20, 0, 10);
+        gltf.scene.position.set(...position);
         // gltf.scene.scale.set(0.001, 0.001, 0.001);
         gltf.scene.traverse((child) => {
           if (child.isMesh) {

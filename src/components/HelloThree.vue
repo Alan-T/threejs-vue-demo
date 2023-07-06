@@ -49,7 +49,7 @@
         <button @click="onAddMesh">添加货物</button>
         <button @click="onRemoveMesh">删除货物</button>
         <button @click="() => onMoveMesh(meshBox)">开始运动</button>
-        <button @click="onBatchAddMesh">添加48*4*3货物</button>
+        <button @click="onBatchAddMesh">添加24*4*3货物</button>
       </div>
     </div>
   </div>
@@ -64,25 +64,29 @@ import mqtt from "mqtt/dist/mqtt.min";
 const threeDomRef = ref(null);
 let alan3d = null;
 let meshBox = null;
-let client=null;
+let client = null;
 const options = ref([]);
 const formItems = reactive({
   name: "标准箱",
   id: 0,
   size: "1,1,1",
   color: "#f8d059",
-  position: "16.07,1.2,10.62",
+  position: "11.3,1.2,9.42",
 });
 
 onMounted(() => {
   alan3d = new Alan3d(threeDomRef.value);
   alan3d.init();
   // alan3d.loadObjModel("/24列4层货架.obj");
-  alan3d.loadGltfModel("/立体库.gltf");
-  initMqtt()
+  // alan3d.loadGltfModel("/立体库.gltf");
+  alan3d.loadGltfModel("/货架/货架.glb", [-16, 0, 10]);
+  alan3d.loadGltfModel("/堆垛机/堆垛机.glb", [12, 0, 8.6]);
+  alan3d.loadGltfModel("/货叉/货叉.glb", [13.2, 2.1, 8.8]);
+  alan3d.loadGltfModel("/载货台/载货台.glb", [12.8, 2, 8.8]);
+  initMqtt();
 });
 
-const initMqtt=()=>{
+const initMqtt = () => {
   const options = {
     keepalive: 60, // 默认60秒，设置0为禁用
     clean: true, // 设置为false以在脱机时接收QoS 1和2消息
@@ -97,7 +101,7 @@ const initMqtt=()=>{
     // reconnectPeriod: 1000, //设置多长时间进行重新连接 单位毫秒 两次重新连接之间的时间间隔。通过将设置为，禁用自动重新连接0
     // connectTimeout: 10 * 1000, // 收到CONNACK之前等待的时间
   };
-  client = mqtt.connect('ws://101.132.39.71:8083/mqtt');
+  client = mqtt.connect("ws://101.132.39.71:8083/mqtt");
   client.on("connect", (connack) => {
     console.log("mqtt链接成功");
     client.subscribe("3d-topic/box", (err) => {
@@ -106,8 +110,8 @@ const initMqtt=()=>{
       }
     });
     client.publish(
-      "getWarningCount",
-      "warning init!",
+      "initThree",
+      "Data init!",
       { qos: 0, retain: false },
       function (error) {
         if (error) {
@@ -118,21 +122,21 @@ const initMqtt=()=>{
       }
     );
     client.on("message", function (topic, message) {
-      if (topic.toString() === "earlyWarn") {
-        warningCount.value = JSON.parse(message.toString()).total;
-        animationPlayState.value = "running";
-      }
-      if (topic.toString() === "giveAlarm") {
-        if (warningShow.value) {
-          const alarmId = JSON.parse(message.toString()).id;
-          getWarningDetail(alarmId).then((res) => {
-            curAlarmRecord.value = res.data;
-            alarmVisible.value = true;
-          });
-          if (audioPlayer.value.paused) {
-            audioPlayer.value.play();
-          }
-        }
+      if (topic.toString() === "3d-topic/box") {
+        const res = JSON.parse(message.toString());
+        formItems.id++;
+        formItems.name = "标准箱" + formItems.id;
+        let meshBoxaa = makeMeshBox(
+          [
+            res.list[0].position.x,
+            res.list[0].position.y,
+            res.list[0].position.z,
+          ],
+          formItems.size.split(","),
+          formItems.color,
+          formItems.name
+        );
+        alan3d.addObject(meshBoxaa);
       }
       console.log(topic.toString());
       console.log(message.toString());
@@ -141,7 +145,7 @@ const initMqtt=()=>{
       console.log("mqtt断开链接");
     });
   });
-}
+};
 
 const onAddMesh = () => {
   console.log(formItems);
@@ -151,9 +155,9 @@ const onAddMesh = () => {
     id: formItems.id,
     label: formItems.name,
     meshBox: makeMeshBox(
+      formItems.position.split(","),
       formItems.size.split(","),
       formItems.color,
-      formItems.position.split(","),
       formItems.name
     ),
   };
@@ -170,7 +174,7 @@ const onRemoveMesh = () => {
 };
 
 const onMeshChange = (event) => {
-  meshBox = options.value.find((item) => (item.id = event.target.value));
+  meshBox = options.value.find((item) => item.id == event.target.value);
 };
 const onMoveMesh = (mesh) => {
   if (!mesh) {
@@ -209,29 +213,47 @@ const getTweenList = (start, positionList) => {
 };
 
 const onBatchAddMesh = () => {
-  for (let i = 0; i < 48; i++) {
+  const msss = [];
+  for (let i = 0; i < 24; i++) {
     for (let j = 0; j < 4; j++) {
       for (let k = 0; k < 3; k++) {
-        if (k == 2) {
+        if (k >= 1) {
           let box = makeMeshBox(
+            [11.3 - i * 1.05, 1.2 + j * 2.1, 8.22 - k * 1.2],
             [1, 1, 1],
             "#f8d059",
-            [16.07 - i * 1.05, 1.2 + j * 2.1, 9.42 - k * 1.2],
             `货物${i}、${j}、${k}`
           );
+          msss.push({
+            name: `货物${i}、${j}、${k}`,
+            position: [
+              Number((11.3 - i * 1.05).toFixed(2)),
+              Number((1.2 + j * 2.1).toFixed(2)),
+              Number((8.22 - k * 1.2).toFixed(2)),
+            ],
+          });
           alan3d.addObject(box);
         } else {
           let box = makeMeshBox(
+            [11.3 - i * 1.05, 1.2 + j * 2.1, 9.42 - k * 1.2],
             [1, 1, 1],
             "#f8d059",
-            [16.07 - i * 1.05, 1.2 + j * 2.1, 10.62 - k * 1.2],
             `货物${i}、${j}、${k}`
           );
+          msss.push({
+            name: `货物${i}、${j}、${k}`,
+            position: [
+              Number((11.3 - i * 1.05).toFixed(2)),
+              Number((1.2 + j * 2.1).toFixed(2)),
+              Number((9.42 - k * 1.2).toFixed(2)),
+            ],
+          });
           alan3d.addObject(box);
         }
       }
     }
   }
+  console.log(msss);
 };
 </script>
 <style scoped lang="scss">

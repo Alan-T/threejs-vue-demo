@@ -1,8 +1,8 @@
 import * as THREE from "three"; //导入three.js核心库
 export const makeMeshBox = (
+  position = [1, 1, 0.5],
   size = [1, 1, 1],
   color = "#f8d059",
-  position = [1, 1, 0.5],
   name = "标签名称测试"
 ) => {
   const mesh = new THREE.Mesh(
