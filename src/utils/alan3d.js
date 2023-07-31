@@ -157,7 +157,7 @@ class Alan3d {
     // this.camera.position.set(0, 5, 25);
   }
   initRender() {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true }); //设置抗锯齿
+    this.renderer = new THREE.WebGLRenderer({ antialias: true ,alpha:true}); //设置抗锯齿
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     //设置屏幕像素比
     this.renderer.setPixelRatio(window.devicePixelRatio);
